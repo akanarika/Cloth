@@ -14,13 +14,11 @@
 #include <sstream>
 #include <iostream>
 
-class Shader
-{
+class Shader {
 public:
     GLuint Program;
     // Constructor generates the shader on the fly
-    Shader(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geometryPath = nullptr)
-    {
+    Shader(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geometryPath = nullptr) {
         // 1. Retrieve the vertex/fragment source code from filePath
         std::string vertexCode;
         std::string fragmentCode;
@@ -32,8 +30,7 @@ public:
         vShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
         fShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
         gShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
-        try 
-        {
+        try {
             // Open files
             vShaderFile.open(vertexPath);
             fShaderFile.open(fragmentPath);
@@ -48,8 +45,7 @@ public:
             vertexCode = vShaderStream.str();
             fragmentCode = fShaderStream.str();            
             // If geometry shader path is present, also load a geometry shader
-            if(geometryPath != nullptr)
-            {
+            if(geometryPath != nullptr) {
                 gShaderFile.open(geometryPath);
                 std::stringstream gShaderStream;
                 gShaderStream << gShaderFile.rdbuf();
@@ -57,8 +53,7 @@ public:
                 geometryCode = gShaderStream.str();
             }
         }
-        catch (std::ifstream::failure e)
-        {
+        catch (std::ifstream::failure e) {
             std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
         }
         const GLchar* vShaderCode = vertexCode.c_str();
@@ -79,8 +74,7 @@ public:
         checkCompileErrors(fragment, "FRAGMENT");
         // If geometry shader is given, compile geometry shader
         GLuint geometry;
-        if(geometryPath != nullptr)
-        {
+        if(geometryPath != nullptr) {
             const GLchar * gShaderCode = geometryCode.c_str();
             geometry = glCreateShader(GL_GEOMETRY_SHADER);
             glShaderSource(geometry, 1, &gShaderCode, NULL);
@@ -106,24 +100,19 @@ public:
     void Use() { glUseProgram(this->Program); }
 
 private:
-    void checkCompileErrors(GLuint shader, std::string type)
-    {
+    void checkCompileErrors(GLuint shader, std::string type) {
         GLint success;
         GLchar infoLog[1024];
-        if(type != "PROGRAM")
-        {
+        if(type != "PROGRAM") {
             glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-            if(!success)
-            {
+            if(!success) {
                 glGetShaderInfoLog(shader, 1024, NULL, infoLog);
                 std::cout << "| ERROR::::SHADER-COMPILATION-ERROR of type: " << type << "|\n" << infoLog << "\n| -- --------------------------------------------------- -- |" << std::endl;
             }
         }
-        else
-        {
+        else {
             glGetProgramiv(shader, GL_LINK_STATUS, &success);
-            if(!success)
-            {
+            if(!success) {
                 glGetProgramInfoLog(shader, 1024, NULL, infoLog);
                 std::cout << "| ERROR::::PROGRAM-LINKING-ERROR of type: " << type << "|\n" << infoLog << "\n| -- --------------------------------------------------- -- |" << std::endl;
             }
