@@ -19,11 +19,13 @@ public:
     float get_grid_size();
     int get_row_count();
     int get_col_count(); 
+    bool update_points(std::vector<float> &vertices);
 private:
     int row_count;  // Row count (for points)
     int col_count;  // Column count (for points)
     float grid_size;
     int vertex_count;
+    float mass;
     std::vector<Point*> points;  
     std::vector<int> indices;
 };

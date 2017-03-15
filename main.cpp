@@ -74,8 +74,7 @@ int main() {
 
     // Shader reading
     Shader shader_program("vs.glsl", "fs.glsl");
-    
-    Cloth* cloth = new Cloth(11, 11);
+    Cloth* cloth = new Cloth(20, 20);
     std::vector<GLfloat> vertices = cloth->get_vertices();
     std::vector<int> indices = cloth->get_indices();
 
@@ -89,7 +88,7 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(vertices[0]), 
-                 &vertices[0], GL_STATIC_DRAW);
+                 &vertices[0], GL_DYNAMIC_DRAW);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(indices[0]), 
                  &indices[0], GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
@@ -105,6 +104,8 @@ int main() {
         
     // Main loop
     while (!glfwWindowShouldClose(window)) {
+        //std::cout << cloth->get_vertices()[1] << std::endl;
+        
         glfwPollEvents();
         // Render
         glClearColor(.2f, .3f, 1.0f, 1.0f);
@@ -112,11 +113,13 @@ int main() {
         
         // Draw
         shader_program.Use();
-        
+        cloth->update_points(vertices); 
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(vertices[0]), 
+                     &vertices[0], GL_DYNAMIC_DRAW);
         view_transform(shader_program, cloth->get_grid_size(),
                        cloth->get_row_count(), cloth->get_col_count());
         glBindVertexArray(VAO);
-        //glDrawArrays(GL_POINTS, 0, vertex_count*3);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
         
@@ -153,6 +156,7 @@ void view_transform(Shader shader_program, float grid_size,
     // Model matrix
     glm::mat4 model;
     float scale = 0.5f;
+    model = glm::scale(model, glm::vec3(0.5f));
     model = glm::translate(model, glm::vec3(-grid_size*col_count/2.0f, 
                                             -grid_size*row_count/2.0f, 0.0f));
 
