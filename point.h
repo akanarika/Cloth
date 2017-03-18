@@ -16,6 +16,7 @@ public:
     Point();
     Point(float, float, float);
     glm::vec3 pos;
+    glm::vec3 force;
     void set_index(int);
     void set_vel(glm::vec3);
     glm::vec3 get_vel();

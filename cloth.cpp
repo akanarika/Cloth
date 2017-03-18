@@ -8,14 +8,15 @@
 #include <glm/ext.hpp>
 #include "cloth.h"
 
-Cloth::Cloth() {
+#define SQRT_2 1.4142135f
 
-}
 
 Cloth::Cloth(int r, int c): row_count(r), col_count(c) {
     grid_size = 1.0f / (float)(std::max(r-1, c-1));
     vertex_count = r * c;
     mass = 1.0f;
+    time = 0.0f;
+    wind = false;
     
     // Vertices initialization
     for (int i=0; i<r; i++) {
@@ -40,7 +41,6 @@ Cloth::Cloth(int r, int c): row_count(r), col_count(c) {
             indices.push_back((i + 1) * c + j + 1);
         }
     }
-            
 }
 
 std::vector<int> Cloth::get_indices() {
@@ -70,42 +70,81 @@ int Cloth::get_col_count() {
 }
 
 bool Cloth::update_points(std::vector<float> &vertices) {
-    glm::vec3 force;
-    glm::vec3 gravity;
-    glm::vec3 spring_force;
-    float vertex_mass = mass / vertex_count;
-    float timestep = 0.0001f;
-    float damping = 0.02f;
-    float k = 8.0f;
-    gravity = glm::vec3(0, 9.8f, 0);
-    force = vertex_mass * gravity;
+    /* TODO:
+     * add slider controlling
+     * add timestep changing
+     * add wind
+     * add rigidbody collision
+     * maybe upsampling
+     *
+     */
+    glm::vec3 force;  // Force on each point
+    glm::vec3 gravity;  // The gravity vector
+    float vertex_mass = mass / vertex_count;  // Mass of each vertex
+    float timestep = 0.0001f;  // Timestep
+    float damping = 0.02f;  // Damping (air resistance)
+    float k = 2.0f;  // Spring stiffness
+    glm::vec3 wind_force = glm::vec3(0);
+    gravity = 0.1f * glm::vec3(0, 9.8f, 0);
+    
     for (int i=0; i<vertex_count; i++) {
-        force = vertex_mass * gravity;
         Point* curr_point = points[i];
-        //std::cout <<"point: " << i << std::endl;
+        curr_point->force += vertex_mass * gravity; // Force initialization (gravity)
+        /* Get the neighbors on straight directions (up/down/left/right) */
         std::vector<int> s_neighbors = curr_point->get_s_neighbors(i, col_count, 
                                                                    row_count);
+        /* Get the neighbors on diagonal directions 
+         * (up_left/up_right/down_left/down_right) */
         std::vector<int> d_neighbors = curr_point->get_d_neighbors(i, col_count, 
                                                                    row_count);    
+        /* Spring force accumulation */
         for (int j=0; j<s_neighbors.size(); j++) {
-            //std::cout <<"neighbor: " <<  s_neighbors[j] << std::endl;
             Point* neighbor_point = points[s_neighbors[j]];
             glm::vec3 x = neighbor_point->pos - curr_point->pos;
-            force += x * (glm::length(x) - grid_size) * k/ glm::length(x);
+            curr_point->force += x * (glm::length(x) - grid_size) * k / glm::length(x);
         }
         for (int j=0; j<d_neighbors.size(); j++) {
-            //std::cout <<"neighbor: " <<  d_neighbors[j] << std::endl;
             Point* neighbor_point = points[d_neighbors[j]];
             glm::vec3 x = neighbor_point->pos - curr_point->pos;
-            force += x * (glm::length(x)- grid_size * (float)sqrt(2)) * k / glm::length(x);
+            curr_point->force += x * (glm::length(x)- grid_size * SQRT_2) * k 
+                     / glm::length(x);
         }
-        curr_point->set_vel(curr_point->get_vel() + timestep * force / vertex_mass);
+
+        /* Add wind force */
+        float x_force = 0; // cos(0.8f*time) * (rand()/RAND_MAX-0.5f);
+        float y_force = std::abs(sin(0.1f*time) - 0.2f);
+        float z_force = std::abs(cos(sin(curr_point->pos[0]*time) - 0.8f));
+        if (wind) {
+            wind_force = glm::vec3(x_force, -0.0005f * y_force, -0.002f * z_force);
+            curr_point->force += wind_force;
+        }
+
+        /* Set the velocity of each point */
+        curr_point->set_vel(curr_point->get_vel() + timestep * curr_point->force 
+                            / vertex_mass);
+        /* Reset force */
+        curr_point->force = glm::vec3(0);
     }
     for (int i=0; i<vertex_count; i++) {
-        if(i!=0 && i!=col_count-1) points[i]->pos = points[i]->pos * (1.0f - damping) + points[i]->get_vel();
+        if(i!=0 && i!=col_count-1) {
+            points[i]->pos = points[i]->pos * (1.0f - damping) 
+                             + points[i]->get_vel();
+        }
         vertices[i*3] = points[i]->pos.x;
         vertices[i*3+1] = points[i]->pos.y;
         vertices[i*3+2] = points[i]->pos.z;
     }
+    time += 0.03f;
     return true;
+}
+
+void Cloth::wind_on() {
+    if (wind) {
+        wind = false;
+        std::cout << "Wind mode off" << std::endl;
+    }
+    else {
+        wind = true;
+        std::cout << "Wind mode on" << std::endl;
+    }
 }

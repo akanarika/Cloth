@@ -20,12 +20,15 @@ public:
     int get_row_count();
     int get_col_count(); 
     bool update_points(std::vector<float> &vertices);
+    void wind_on();
 private:
     int row_count;  // Row count (for points)
     int col_count;  // Column count (for points)
     float grid_size;
     int vertex_count;
     float mass;
+    float time;
+    bool wind;
     std::vector<Point*> points;  
     std::vector<int> indices;
 };
