@@ -1,12 +1,15 @@
 #version 330 core
 layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 color;
+layout (location = 1) in vec3 normal;
 
 uniform mat4 mvp;
+uniform mat4 model;
 
-out vec3 out_color;
+out vec3 FragPos;
+out vec3 Normal;
 
 void main() {
-    gl_Position = mvp * vec4(position, 1.0);
-    out_color = vec3(1.0f, 0.5f, 0.2f);
+    gl_Position = mvp * vec4(position, 1.0f);
+    FragPos = vec3(model * vec4(position, 1.0f));
+    Normal = normal;
 }

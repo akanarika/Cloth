@@ -38,6 +38,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void view_transform(Shader shader_program, float grid_size,
                     int row_count, int col_count);
 
+// Drawing
+bool line_mode = true;
+
 // Window
 GLFWwindow* window;
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -116,11 +119,23 @@ int main() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
                           3*sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 
+                          3*sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    // Some attributes
+    // Light VAO
+    GLuint lightVAO;
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0); 
+
+	    // Some attributes
     glPointSize(5);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -131,6 +146,7 @@ int main() {
     bool last_z_pressed = false;
     bool last_x_pressed = false;
     bool last_c_pressed = false;
+    bool last_y_pressed = false; 
         
     // Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -175,6 +191,10 @@ int main() {
         if (keys[GLFW_KEY_O]) cloth->ball_control('O');
         if (keys[GLFW_KEY_LEFT_BRACKET]) cloth->ball_control('[');
         if (keys[GLFW_KEY_RIGHT_BRACKET]) cloth->ball_control(']');
+        if (keys[GLFW_KEY_Y] && !last_y_pressed) line_mode = !line_mode;
+        last_y_pressed = keys[GLFW_KEY_Y];
+        if (line_mode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // Render
         glClearColor(.2f, .3f, 1.0f, 1.0f);
@@ -188,6 +208,17 @@ int main() {
                      &vertices[0], GL_DYNAMIC_DRAW);
         view_transform(shader_program, cloth->get_grid_size(),
                        cloth->get_row_count(), cloth->get_col_count());
+        // Color input
+	    GLint object_color_loc = glGetUniformLocation(shader_program.Program,
+	    											  "object_color");
+	    GLint light_color_loc = glGetUniformLocation(shader_program.Program,
+                                                     "light_color");
+	    GLint light_pos_loc = glGetUniformLocation(shader_program.Program,
+                                                   "light_pos");
+        glUniform3f(object_color_loc, 1.0f, 0.5f, 0.2f);
+        glUniform3f(light_color_loc, 1.0f, 1.0f, 1.0f);
+        glUniform3f(light_pos_loc, 1.0f, 1.0f, 1.0f);
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
@@ -249,7 +280,9 @@ void view_transform(Shader shader_program, float grid_size,
     // Put transformation matrics together
     glm::mat4 mvp = projection * view * model;
     GLint mvp_loc = glGetUniformLocation(shader_program.Program, "mvp");
+    GLint model_loc = glGetUniformLocation(shader_program.Program, "model");
     glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model));
 }
 
 bool first_mouse = false;
