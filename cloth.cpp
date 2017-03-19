@@ -98,7 +98,7 @@ bool Cloth::update_points(std::vector<float> &vertices) {
     glm::vec3 force;  // Force on each point
     glm::vec3 gravity;  // The gravity vector
     float vertex_mass = mass / vertex_count;  // Mass of each vertex
-    float timestep = 0.00005f;  // Timestep
+    float timestep = 0.0001f;  // Timestep
     float damping = 0.01f;  // Damping (air resistance)
     glm::vec3 wind_force = glm::vec3(0);
     gravity = 0.1f * glm::vec3(0, 9.8f, 0);
@@ -226,7 +226,7 @@ bool Cloth::update_points_constraint(std::vector<float> &vertices) {
     glm::vec3 force;  // Force on each point
     glm::vec3 gravity;  // The gravity vector
     float vertex_mass = mass / vertex_count;  // Mass of each vertex
-    float timestep = 0.0001f;  // Timestep
+    float timestep = 0.00015f;  // Timestep
     float damping = 0.02f;  // Damping (air resistance)
     glm::vec3 wind_force = glm::vec3(0);
     gravity = 0.1f * glm::vec3(0, 9.8f, 0);
@@ -291,6 +291,8 @@ bool Cloth::update_points_constraint(std::vector<float> &vertices) {
             if (distance > tear_distance) {
                 float offset = (distance - rest_distance) / distance;
                 glm::vec3 correction = offset * (a->pos - b->pos);
+                if (points[it->a]->pined) points[it->a]->pined = false;
+                if (points[it->b]->pined) points[it->b]->pined = false;
                 constraints.erase(constraints.begin() + i);
             }
         }

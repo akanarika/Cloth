@@ -226,7 +226,20 @@ int main(int argc, char **argv) {
         // Render
         glClearColor(.2f, .3f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
+        // Color input
+	    GLint object_color_loc = glGetUniformLocation(shader_program.Program,
+	    											  "object_color");
+	    GLint light_color_loc = glGetUniformLocation(shader_program.Program,
+                                                     "light_color");
+	    GLint light_pos_loc = glGetUniformLocation(shader_program.Program,
+                                                   "light_pos");
+        if (m==0)
+        glUniform3f(object_color_loc, 0.0f, 0.5f, 0.2f);
+        if (m==1)
+        glUniform3f(object_color_loc, 1.0f, 0.5f, 0.2f);
+        glUniform3f(light_color_loc, 1.0f, 1.0f, 1.0f);
+        glUniform3f(light_pos_loc, 0.2f, 1.8f, 1.0f);
+
         // Draw
         shader_program.Use();
         draw_sphere(cloth->get_ball_radius(), cloth->get_ball_center());
@@ -237,17 +250,7 @@ int main(int argc, char **argv) {
                      &vertices[0], GL_DYNAMIC_DRAW);
         view_transform(shader_program, cloth->get_grid_size(),
                        cloth->get_row_count(), cloth->get_col_count());
-        // Color input
-	    GLint object_color_loc = glGetUniformLocation(shader_program.Program,
-	    											  "object_color");
-	    GLint light_color_loc = glGetUniformLocation(shader_program.Program,
-                                                     "light_color");
-	    GLint light_pos_loc = glGetUniformLocation(shader_program.Program,
-                                                   "light_pos");
-        glUniform3f(object_color_loc, 1.0f, 0.5f, 0.2f);
-        glUniform3f(light_color_loc, 1.0f, 1.0f, 1.0f);
-        glUniform3f(light_pos_loc, 0.2f, 1.0f, 1.2f);
-
+                
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
@@ -277,9 +280,9 @@ void view_control() {
     GLfloat cameraSpeed = 1.0f * delta_time;
     if (keys[GLFW_KEY_W]) camera_pos -= cameraSpeed * camera_up;
     if (keys[GLFW_KEY_S]) camera_pos += cameraSpeed * camera_up;
-    if (keys[GLFW_KEY_A]) camera_pos -= glm::normalize(glm::cross(camera_front,
+    if (keys[GLFW_KEY_D]) camera_pos -= glm::normalize(glm::cross(camera_front,
                                                       camera_up)) * cameraSpeed;
-    if (keys[GLFW_KEY_D]) camera_pos += glm::normalize(glm::cross(camera_front,
+    if (keys[GLFW_KEY_A]) camera_pos += glm::normalize(glm::cross(camera_front,
                                                       camera_up)) * cameraSpeed;
 }
 
@@ -368,12 +371,11 @@ void reset_camera(int view) {
         }
 }
 
-/* This drawing method is sourced from the Internet */
 void draw_sphere(float r, glm::vec3 c) {
     float *sphere_vertex, *sphere_normal;
     GLuint *sphere_indices;
     int sphere_vertex_size, sphere_indices_size;
-    int res = 20;
+    int res = 50;
     GLuint vao, vbo, nbo, ebo;
     
     sphere_vertex_size = 3*(res+1)*(res+1);
