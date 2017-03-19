@@ -42,6 +42,10 @@ Cloth::Cloth(int r, int c): row_count(r), col_count(c) {
             indices.push_back((i + 1) * c + j + 1);
         }
     }
+
+    // Ball initialization
+    ball_center = glm::vec3(grid_size * c * 0.5f, grid_size * r * 1.8f, 0);
+    ball_radius = 0.3f;
 }
 
 std::vector<int> Cloth::get_indices() {
@@ -82,7 +86,7 @@ bool Cloth::update_points(std::vector<float> &vertices) {
     glm::vec3 force;  // Force on each point
     glm::vec3 gravity;  // The gravity vector
     float vertex_mass = mass / vertex_count;  // Mass of each vertex
-    float timestep = 0.0001f;  // Timestep
+    float timestep = 0.00005f;  // Timestep
     float damping = 0.01f;  // Damping (air resistance)
     glm::vec3 wind_force = glm::vec3(0);
     gravity = 0.1f * glm::vec3(0, 9.8f, 0);
@@ -119,25 +123,27 @@ bool Cloth::update_points(std::vector<float> &vertices) {
         }
 
         /* Set the velocity of each point */
-        curr_point->set_vel(curr_point->get_vel() + timestep * curr_point->force 
-                            / vertex_mass);
+        curr_point->set_acc(curr_point->force / vertex_mass);
 
         /* Reset force */
         curr_point->force = glm::vec3(0);
     }
 
-    /* Object collision */
-    glm::vec3 center = glm::vec3(col_count * grid_size * 0.5, row_count * grid_size * 0.8, 0);
-    float radius = 0.5f;
+    /* Position update and Object collision */
     for (int i=0; i<vertex_count; i++) {
+        glm::vec3 temp = points[i]->pos;
         if(i!=0 && i!=col_count-1) {
-            points[i]->pos = points[i]->pos * (1.0f - damping) 
-                             + points[i]->get_vel();
-            if (glm::distance(points[i]->pos, center) < radius) {
-                //points[i]->pos = glm::normalize(points[i]->pos - center) * radius + center;
+            points[i]->pos = points[i]->pos + (1.0f - damping) 
+                             * (points[i]->pos - points[i]->old_pos)
+                             + points[i]->get_acc()*timestep;
+            glm::vec3 offset = points[i]->pos - ball_center;
+            if (glm::length(offset) < ball_radius) {
+                points[i]->pos += glm::normalize(offset) 
+                                  * (ball_radius - glm::length(offset));
             }
                 
         }
+        points[i]->old_pos = temp;
         vertices[i*3] = points[i]->pos.x;
         vertices[i*3+1] = points[i]->pos.y;
         vertices[i*3+2] = points[i]->pos.z;
@@ -158,11 +164,40 @@ void Cloth::wind_on() {
 }
 
 void Cloth::add_k() {
-    if (k < 5.0f) k += 0.1f;
+    if (k < 4.7f) k += 0.1f;
     std::cout << "Current k: " << k << std::endl;
 }
 
 void Cloth::reduce_k() {
     if (k > 0.2f) k -= 0.1f;
     std::cout << "Current k: " << k << std::endl;
+}
+
+void Cloth::ball_control(char input) {
+    switch(input) {
+        case 'I':
+            ball_center -= glm::vec3(0, 0.002f, 0);
+            break;
+        case 'K':
+            ball_center += glm::vec3(0, 0.002f, 0);
+            break;
+        case 'J':
+            ball_center -= glm::vec3(0.002f, 0, 0);
+            break;
+        case 'L':
+            ball_center += glm::vec3(0.002f, 0, 0);
+            break;
+        case 'U':
+            ball_center -= glm::vec3(0, 0, 0.002f);
+            break;
+        case 'O':
+            ball_center += glm::vec3(0, 0, 0.002f);
+            break;
+        case '[':
+            if(ball_radius > 0.2f) ball_radius -= 0.002f;
+            break;
+        case ']':
+            if(ball_radius < 4.0f) ball_radius += 0.002f;
+            break;
+    }
 }

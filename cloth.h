@@ -21,6 +21,7 @@ public:
     int get_col_count(); 
     bool update_points(std::vector<float> &vertices);
     void wind_on();
+    void ball_control(char input);
     void add_k();
     void reduce_k();
 private:
@@ -31,6 +32,8 @@ private:
     float mass;
     float k;
     float time;
+    glm::vec3 ball_center;
+    float ball_radius;
     bool wind;
     std::vector<Point*> points;  
     std::vector<int> indices;

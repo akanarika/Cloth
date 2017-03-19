@@ -12,18 +12,19 @@ Point::Point() {
 
 Point::Point(float x, float y, float z) {
     pos = glm::vec3(x, y, z); 
+    old_pos = glm::vec3(x, y, z);
 }
 
 void Point::set_index(int i) {
     index = i;
 }
 
-void Point::set_vel(glm::vec3 vel) {
-    velocity = vel;
+void Point::set_acc(glm::vec3 acc) {
+    acceleration = acc;
 }
 
-glm::vec3 Point::get_vel() {
-    return velocity;
+glm::vec3 Point::get_acc() {
+    return acceleration;
 }
 
 std::vector<int> Point::get_s_neighbors(int i, int col_count, int row_count) {

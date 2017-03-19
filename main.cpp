@@ -150,6 +150,8 @@ int main() {
         if (keys[GLFW_KEY_Z] && !last_z_pressed) {
             cloth->wind_on();
         }
+        
+        // Some cloth controlling
         last_z_pressed = keys[GLFW_KEY_Z];
         if (keys[GLFW_KEY_R]) {
             reset_camera(1);
@@ -165,6 +167,14 @@ int main() {
         }
         last_x_pressed = keys[GLFW_KEY_X];
         last_c_pressed = keys[GLFW_KEY_C];
+        if (keys[GLFW_KEY_I]) cloth->ball_control('I');
+        if (keys[GLFW_KEY_K]) cloth->ball_control('K');
+        if (keys[GLFW_KEY_J]) cloth->ball_control('J');
+        if (keys[GLFW_KEY_L]) cloth->ball_control('L');
+        if (keys[GLFW_KEY_U]) cloth->ball_control('U');
+        if (keys[GLFW_KEY_O]) cloth->ball_control('O');
+        if (keys[GLFW_KEY_LEFT_BRACKET]) cloth->ball_control('[');
+        if (keys[GLFW_KEY_RIGHT_BRACKET]) cloth->ball_control(']');
 
         // Render
         glClearColor(.2f, .3f, 1.0f, 1.0f);
