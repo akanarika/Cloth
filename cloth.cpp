@@ -196,22 +196,22 @@ void Cloth::reduce_k() {
 void Cloth::ball_control(char input) {
     switch(input) {
         case 'I':
-            ball_center -= glm::vec3(0, 0.002f, 0);
+            ball_center -= glm::vec3(0, 0.004f, 0);
             break;
         case 'K':
-            ball_center += glm::vec3(0, 0.002f, 0);
+            ball_center += glm::vec3(0, 0.004f, 0);
             break;
         case 'J':
-            ball_center -= glm::vec3(0.002f, 0, 0);
+            ball_center -= glm::vec3(0.004f, 0, 0);
             break;
         case 'L':
-            ball_center += glm::vec3(0.002f, 0, 0);
+            ball_center += glm::vec3(0.004f, 0, 0);
             break;
         case 'U':
-            ball_center -= glm::vec3(0, 0, 0.002f);
+            ball_center -= glm::vec3(0, 0, 0.004f);
             break;
         case 'O':
-            ball_center += glm::vec3(0, 0, 0.002f);
+            ball_center += glm::vec3(0, 0, 0.004f);
             break;
         case '[':
             if(ball_radius > 0.2f) ball_radius -= 0.002f;
@@ -369,3 +369,12 @@ void Cloth::get_constraints() {
         }
     }
 }
+
+float Cloth::get_ball_radius() {
+    return ball_radius;
+}
+
+glm::vec3 Cloth::get_ball_center() {
+    return ball_center;
+}
+

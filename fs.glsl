@@ -10,7 +10,7 @@ uniform vec3 light_pos;
 void main() {
     
 	// Ambient
-    float ambientStrength = 0.8f;
+    float ambientStrength = 0.3f;
     vec3 ambient = ambientStrength * light_color;
 
     // Diffuse 
@@ -20,5 +20,5 @@ void main() {
     vec3 diffuse = diff * light_color;
 
     vec3 result = (ambient + diffuse) * object_color;
-    color = vec4(result, 1.0f);
+    color = vec4(result, 0.1f);
 }

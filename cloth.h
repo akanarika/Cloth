@@ -33,6 +33,8 @@ public:
     void add_k();
     void reduce_k();
     void get_constraints();
+    float get_ball_radius();
+    glm::vec3 get_ball_center();
 private:
     int row_count;  // Row count (for points)
     int col_count;  // Column count (for points)

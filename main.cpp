@@ -41,6 +41,7 @@ void view_transform(Shader shader_program, float grid_size,
 
 // Drawing
 bool line_mode = true;
+void draw_sphere(float r, glm::vec3 c);
 
 // Window
 GLFWwindow* window;
@@ -157,7 +158,6 @@ int main(int argc, char **argv) {
     GLuint lightVAO;
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0); 
@@ -229,6 +229,7 @@ int main(int argc, char **argv) {
         
         // Draw
         shader_program.Use();
+        draw_sphere(cloth->get_ball_radius(), cloth->get_ball_center());
         if (cloth->mode == 0) cloth->update_points(vertices); 
         if (cloth->mode == 1) cloth->update_points_constraint(vertices); 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -245,7 +246,7 @@ int main(int argc, char **argv) {
                                                    "light_pos");
         glUniform3f(object_color_loc, 1.0f, 0.5f, 0.2f);
         glUniform3f(light_color_loc, 1.0f, 1.0f, 1.0f);
-        glUniform3f(light_pos_loc, 0.5f, 1.0f, 0.5f);
+        glUniform3f(light_pos_loc, 0.2f, 1.0f, 1.2f);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
@@ -365,4 +366,76 @@ void reset_camera(int view) {
             camera_up = glm::vec3(0, -1.0f, 0);
             break;
         }
+}
+
+/* This drawing method is sourced from the Internet */
+void draw_sphere(float r, glm::vec3 c) {
+    float *sphere_vertex, *sphere_normal;
+    GLuint *sphere_indices;
+    int sphere_vertex_size, sphere_indices_size;
+    int res = 20;
+    GLuint vao, vbo, nbo, ebo;
+    
+    sphere_vertex_size = 3*(res+1)*(res+1);
+    sphere_indices_size = 6*res*res; 
+    
+    sphere_vertex = new float[sphere_vertex_size];
+    sphere_normal = new float[sphere_vertex_size];
+    sphere_indices = new GLuint[sphere_indices_size];
+
+	for (int j=0; j<=res; j++) {
+        for (int i=0; i<=res; i++) {
+            int k = i+j*(res+1);
+            sphere_vertex[3*k] = (float)i / res;
+            sphere_vertex[3*k+1] = .0f;
+            sphere_vertex[3*k+2] = (float)j / res;
+            
+            float theta = sphere_vertex[3*k+0]*2*M_PI;
+            float phi  = sphere_vertex[3*k+2]*M_PI;
+            
+            sphere_normal[3*k+0] = sphere_vertex[3*k+0] = c.x + r*glm::cos(theta)*glm::sin(phi);
+            sphere_normal[3*k+1] = sphere_vertex[3*k+1] = c.y + r*glm::sin(theta)*glm::sin(phi);
+            sphere_normal[3*k+2] = sphere_vertex[3*k+2] = c.z + r*glm::cos(phi);
+        }
+    }
+    
+    int k = 0;
+    for (int j=0; j<res; j++) {
+        for (int i=0; i<res; i++) {
+            sphere_indices[k++] = i + j*(res+1);
+            sphere_indices[k++] = i + (j+1)*(res+1);
+            sphere_indices[k++] = i+1 + (j+1)*(res+1);
+            
+            sphere_indices[k++] = i + j*(res+1);
+            sphere_indices[k++] = i+1 + (j+1)*(res+1);
+            sphere_indices[k++] = i+1 + j*(res+1);
+        }
+    }
+
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    glGenBuffers(1, &vbo); 
+    glBindBuffer(GL_ARRAY_BUFFER, vbo); 
+    glBufferData(GL_ARRAY_BUFFER, sphere_vertex_size * sizeof(float), sphere_vertex, GL_STATIC_DRAW);
+    
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    
+    glGenBuffers(1, &nbo); 
+    glBindBuffer(GL_ARRAY_BUFFER, nbo); 
+    glBufferData(GL_ARRAY_BUFFER, sphere_vertex_size * sizeof(float), sphere_normal, GL_STATIC_DRAW); 
+    
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sphere_indices_size * sizeof(GLuint), sphere_indices, GL_STATIC_DRAW);
+    
+    glBindVertexArray(0); 
+
+    glBindVertexArray(vao);
+    glDrawElements(GL_TRIANGLES, sphere_indices_size, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 }
