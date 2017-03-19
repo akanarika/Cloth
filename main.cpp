@@ -40,7 +40,7 @@ void view_transform(Shader shader_program, float grid_size,
                     int row_count, int col_count);
 
 // Drawing
-bool line_mode = true;
+bool line_mode = false;
 void draw_sphere(float r, glm::vec3 c);
 
 // Window
@@ -49,10 +49,10 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 
 // Camera
 float fov = 45.0f;
-glm::vec3 camera_pos = glm::vec3(0, 0, 1.5f);
+glm::vec3 camera_pos = glm::vec3(0, 0, 1.3f);
 glm::vec3 camera_front = glm::vec3(0, 0, -1.0f);
 glm::vec3 camera_up = glm::vec3(0, -1.0f, 0);
-GLfloat yaw   = -90.0f;    // Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right (due to how Eular angles work) so we initially rotate a bit to the left.
+GLfloat yaw   = -90.0f;  
 GLfloat pitch =   0.0f;
 GLfloat lastX =  WIDTH  / 2.0;
 GLfloat lastY =  HEIGHT / 2.0;
@@ -122,6 +122,18 @@ int main(int argc, char **argv) {
                 break;
         }
     }
+    std::cout << "+==================================+"
+              << "\n+ Cloth created!                   +"
+              << "\n+ Info:                            +"
+              << "\n+    Grid row count: " << r << "            "
+              << (int(r / 10)? "+":" +")
+              << "\n+    Grid colomn count: " << c << "         "
+              << (int(c / 10)? "+":" +")
+              << "\n+    Method: " << (m?"constraint based      "
+                                       :"mass spring           ")
+              << "+\n+    Pined point count: " << (p?"4          "
+                                                  :"2          ")
+              << "+\n+==================================+" << std::endl;
 
     // Shader reading
     Shader shader_program("vs.glsl", "fs.glsl");
@@ -158,7 +170,8 @@ int main(int argc, char **argv) {
     GLuint lightVAO;
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 
+                          6 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0); 
 
@@ -218,13 +231,18 @@ int main(int argc, char **argv) {
         if (keys[GLFW_KEY_O]) cloth->ball_control('O');
         if (keys[GLFW_KEY_LEFT_BRACKET]) cloth->ball_control('[');
         if (keys[GLFW_KEY_RIGHT_BRACKET]) cloth->ball_control(']');
-        if (keys[GLFW_KEY_Y] && !last_y_pressed) line_mode = !line_mode;
+        if (keys[GLFW_KEY_Y] && !last_y_pressed) {
+            line_mode = !line_mode;
+            if (line_mode) std::cout << "Wireframe mode on" << std::endl;
+            else std::cout << "Shaded mode on" << std::endl;
+        }
         last_y_pressed = keys[GLFW_KEY_Y];
         if (line_mode) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // Render
-        glClearColor(.2f, .3f, 1.0f, 1.0f);
+        //glClearColor(.2f, .3f, 1.0f, 1.0f);
+        glClearColor(0,0,0,0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // Color input
 	    GLint object_color_loc = glGetUniformLocation(shader_program.Program,
@@ -359,7 +377,7 @@ void reset_camera(int view) {
     fov = 45.0f;
     switch(view) {
         case 1:
-            camera_pos = glm::vec3(0, 0, 1.5f);
+            camera_pos = glm::vec3(0, 0, 1.3f);
             camera_front = glm::vec3(0, 0, -1.0f);
             camera_up = glm::vec3(0, -1.0f, 0);
             break;

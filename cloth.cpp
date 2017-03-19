@@ -61,8 +61,9 @@ Cloth::Cloth(int r, int c, int m, bool p)
     }
 
     // Ball initialization
-    ball_center = glm::vec3(grid_size * c * 0.5f, grid_size * r * 1.8f, 0);
-    ball_radius = 0.3f;
+    ball_radius = 0.25f;
+    ball_center = glm::vec3(grid_size * c * 0.5f, grid_size * r * 1.8f, 
+                            ball_radius * 2);
 
     // Constaints initialization
     if(mode == 1) get_constraints();
