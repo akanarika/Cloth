@@ -15,6 +15,7 @@ Cloth::Cloth(int r, int c): row_count(r), col_count(c) {
     grid_size = 1.0f / (float)(std::max(r-1, c-1));
     vertex_count = r * c;
     mass = 1.0f;
+    k = 2.0f;
     time = 0.0f;
     wind = false;
     
@@ -82,8 +83,7 @@ bool Cloth::update_points(std::vector<float> &vertices) {
     glm::vec3 gravity;  // The gravity vector
     float vertex_mass = mass / vertex_count;  // Mass of each vertex
     float timestep = 0.0001f;  // Timestep
-    float damping = 0.02f;  // Damping (air resistance)
-    float k = 2.0f;  // Spring stiffness
+    float damping = 0.01f;  // Damping (air resistance)
     glm::vec3 wind_force = glm::vec3(0);
     gravity = 0.1f * glm::vec3(0, 9.8f, 0);
     
@@ -101,13 +101,12 @@ bool Cloth::update_points(std::vector<float> &vertices) {
         for (int j=0; j<s_neighbors.size(); j++) {
             Point* neighbor_point = points[s_neighbors[j]];
             glm::vec3 x = neighbor_point->pos - curr_point->pos;
-            curr_point->force += x * (glm::length(x) - grid_size) * k / glm::length(x);
+            curr_point->force += glm::normalize(x) * (glm::length(x) - grid_size) * k; 
         }
         for (int j=0; j<d_neighbors.size(); j++) {
             Point* neighbor_point = points[d_neighbors[j]];
             glm::vec3 x = neighbor_point->pos - curr_point->pos;
-            curr_point->force += x * (glm::length(x)- grid_size * SQRT_2) * k 
-                     / glm::length(x);
+            curr_point->force += glm::normalize(x) * (glm::length(x) - grid_size * SQRT_2) * k;
         }
 
         /* Add wind force */
@@ -122,13 +121,22 @@ bool Cloth::update_points(std::vector<float> &vertices) {
         /* Set the velocity of each point */
         curr_point->set_vel(curr_point->get_vel() + timestep * curr_point->force 
                             / vertex_mass);
+
         /* Reset force */
         curr_point->force = glm::vec3(0);
     }
+
+    /* Object collision */
+    glm::vec3 center = glm::vec3(col_count * grid_size * 0.5, row_count * grid_size * 0.8, 0);
+    float radius = 0.5f;
     for (int i=0; i<vertex_count; i++) {
         if(i!=0 && i!=col_count-1) {
             points[i]->pos = points[i]->pos * (1.0f - damping) 
                              + points[i]->get_vel();
+            if (glm::distance(points[i]->pos, center) < radius) {
+                //points[i]->pos = glm::normalize(points[i]->pos - center) * radius + center;
+            }
+                
         }
         vertices[i*3] = points[i]->pos.x;
         vertices[i*3+1] = points[i]->pos.y;
@@ -147,4 +155,14 @@ void Cloth::wind_on() {
         wind = true;
         std::cout << "Wind mode on" << std::endl;
     }
+}
+
+void Cloth::add_k() {
+    if (k < 5.0f) k += 0.1f;
+    std::cout << "Current k: " << k << std::endl;
+}
+
+void Cloth::reduce_k() {
+    if (k > 0.2f) k -= 0.1f;
+    std::cout << "Current k: " << k << std::endl;
 }

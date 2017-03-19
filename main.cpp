@@ -44,14 +44,14 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 
 // Camera
 float fov = 45.0f;
-glm::vec3 camera_pos = glm::vec3(0, 0, 2.5f);
+glm::vec3 camera_pos = glm::vec3(0, 0, 1.5f);
 glm::vec3 camera_front = glm::vec3(0, 0, -1.0f);
 glm::vec3 camera_up = glm::vec3(0, -1.0f, 0);
 GLfloat yaw   = -90.0f;    // Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right (due to how Eular angles work) so we initially rotate a bit to the left.
 GLfloat pitch =   0.0f;
 GLfloat lastX =  WIDTH  / 2.0;
 GLfloat lastY =  HEIGHT / 2.0;
-void reset_camera();
+void reset_camera(int view);
 
 // Frames
 GLfloat delta_time = 0.0f;
@@ -128,7 +128,9 @@ int main() {
     int nb_frames = 0;
 
     // Last key press
-    bool last_wind_pressed = false;
+    bool last_z_pressed = false;
+    bool last_x_pressed = false;
+    bool last_c_pressed = false;
         
     // Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -145,13 +147,24 @@ int main() {
         // Check if any events have been activited
         glfwPollEvents();
         view_control();
-        if (keys[GLFW_KEY_X] && !last_wind_pressed) {
+        if (keys[GLFW_KEY_Z] && !last_z_pressed) {
             cloth->wind_on();
         }
-        last_wind_pressed = keys[GLFW_KEY_X];
+        last_z_pressed = keys[GLFW_KEY_Z];
         if (keys[GLFW_KEY_R]) {
-            reset_camera();
+            reset_camera(1);
         }
+        if (keys[GLFW_KEY_T]) {
+            reset_camera(2);
+        }
+        if (keys[GLFW_KEY_X] && !last_x_pressed) {
+            cloth->add_k();
+        }
+        if (keys[GLFW_KEY_C] && !last_c_pressed) {
+            cloth->reduce_k();
+        }
+        last_x_pressed = keys[GLFW_KEY_X];
+        last_c_pressed = keys[GLFW_KEY_C];
 
         // Render
         glClearColor(.2f, .3f, 1.0f, 1.0f);
@@ -231,7 +244,7 @@ void view_transform(Shader shader_program, float grid_size,
 
 bool first_mouse = false;
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-	if (keys[GLFW_KEY_Z]) {
+	if (keys[GLFW_KEY_E]) {
 		if (first_mouse) {
 			lastX = xpos;
 			lastY = ypos;
@@ -263,13 +276,22 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	}
 }  
 
-void reset_camera() {
+void reset_camera(int view) {
 	yaw   = -90.0f;    // Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right (due to how Eular angles work) so we initially rotate a bit to the left.
 	pitch =   0.0f;
 	lastX =  WIDTH  / 2.0;
 	lastY =  HEIGHT / 2.0;
     fov = 45.0f;
-    camera_pos = glm::vec3(0, 0, 2.5f);
-    camera_front = glm::vec3(0, 0, -1.0f);
-    camera_up = glm::vec3(0, -1.0f, 0);
+    switch(view) {
+        case 1:
+            camera_pos = glm::vec3(0, 0, 1.5f);
+            camera_front = glm::vec3(0, 0, -1.0f);
+            camera_up = glm::vec3(0, -1.0f, 0);
+            break;
+        case 2:
+            camera_pos = glm::vec3(-1.2f, -0.1f, 0.5f);
+            camera_front = glm::vec3(1.0f, 0, -0.5f);
+            camera_up = glm::vec3(0, -1.0f, 0);
+            break;
+        }
 }
