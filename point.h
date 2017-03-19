@@ -18,6 +18,7 @@ public:
     glm::vec3 pos;
     glm::vec3 old_pos;
     glm::vec3 force;
+    bool pined;
     void set_index(int);
     void set_acc(glm::vec3);
     glm::vec3 get_acc();

@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <vector>
+#include <getopt.h>
 // GLEW
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -60,7 +61,7 @@ void reset_camera(int view);
 GLfloat delta_time = 0.0f;
 GLfloat last_frame = 0.0f;
 
-int main() {
+int main(int argc, char **argv) {
     if (!glfwInit()) {
         fprintf(stderr, "Failed to initialize GLFW\n");
         getchar();
@@ -97,9 +98,35 @@ int main() {
     // Depth test
     glEnable(GL_DEPTH_TEST);
 
+    // Get args
+    int opt;
+    int r = 30;
+    int c = 30;
+    int m = 0;
+    bool p = false;
+    while ((opt = getopt(argc, argv, "r:c:m:p:")) != -1) {
+        switch (opt) {
+            case 'r':
+                r = std::max(3, std::min(30, atoi(optarg)));
+                break;
+            case 'c':
+                c = std::max(3, std::min(30, atoi(optarg)));
+                break;
+            case 'm':
+                m = atoi(optarg);
+                if (m!=0 && m!=1) m = 0;
+                break;
+            case 'p':
+                p = bool(atoi(optarg));
+                break;
+        }
+    }
+
     // Shader reading
     Shader shader_program("vs.glsl", "fs.glsl");
-    Cloth* cloth = new Cloth(30, 30);
+
+    // Create cloth
+    Cloth* cloth = new Cloth(r, c, m, p);
     std::vector<GLfloat> vertices = cloth->get_vertices();
     std::vector<int> indices = cloth->get_indices();
 
@@ -176,10 +203,10 @@ int main() {
             reset_camera(2);
         }
         if (keys[GLFW_KEY_X] && !last_x_pressed) {
-            cloth->add_k();
+            if(cloth->mode == 0) cloth->add_k();
         }
         if (keys[GLFW_KEY_C] && !last_c_pressed) {
-            cloth->reduce_k();
+            if(cloth->mode == 0) cloth->reduce_k();
         }
         last_x_pressed = keys[GLFW_KEY_X];
         last_c_pressed = keys[GLFW_KEY_C];
@@ -202,7 +229,8 @@ int main() {
         
         // Draw
         shader_program.Use();
-        cloth->update_points(vertices); 
+        if (cloth->mode == 0) cloth->update_points(vertices); 
+        if (cloth->mode == 1) cloth->update_points_constraint(vertices); 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(vertices[0]), 
                      &vertices[0], GL_DYNAMIC_DRAW);
@@ -217,7 +245,7 @@ int main() {
                                                    "light_pos");
         glUniform3f(object_color_loc, 1.0f, 0.5f, 0.2f);
         glUniform3f(light_color_loc, 1.0f, 1.0f, 1.0f);
-        glUniform3f(light_pos_loc, 1.0f, 1.0f, 1.0f);
+        glUniform3f(light_pos_loc, 0.5f, 1.0f, 0.5f);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
@@ -245,7 +273,7 @@ void key_callback(GLFWwindow* window, int key, int scancode,
 
 void view_control() {
 	// Camera controls
-    GLfloat cameraSpeed = 5.0f * delta_time;
+    GLfloat cameraSpeed = 1.0f * delta_time;
     if (keys[GLFW_KEY_W]) camera_pos -= cameraSpeed * camera_up;
     if (keys[GLFW_KEY_S]) camera_pos += cameraSpeed * camera_up;
     if (keys[GLFW_KEY_A]) camera_pos -= glm::normalize(glm::cross(camera_front,

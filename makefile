@@ -14,4 +14,5 @@ point.o: point.cpp
 
 clean:
 	rm *.o 
+	rm .*.swp
 

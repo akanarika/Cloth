@@ -13,6 +13,7 @@ Point::Point() {
 Point::Point(float x, float y, float z) {
     pos = glm::vec3(x, y, z); 
     old_pos = glm::vec3(x, y, z);
+    pined = false;
 }
 
 void Point::set_index(int i) {
@@ -56,5 +57,4 @@ std::vector<int> Point::get_d_neighbors(int i, int col_count, int row_count) {
     if (col > 0 && row < row_count-1) d_neighbors.push_back(down_left);
     return d_neighbors;
 }
-
 
