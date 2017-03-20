@@ -3,6 +3,7 @@
 Cloth simulation with mass spring method and constraint based method in C++ and OpenGL.
 ![mass spring implementation](mass_spring.png)
 ![constraint based implementation](constraint_based.png)
+[Demo video](https://vimeo.com/209126665)
 
 ### Features
 
