@@ -20,6 +20,7 @@ $ make
 $ ./main -r 30 -c 30 -m 0 -p 0
 ```
 To run with different parameters
+
 | Opt | Meaning | Value |
 | ------ | ------ | ------ |
 | -r  | grid row count | [3, 30] |
@@ -28,6 +29,7 @@ To run with different parameters
 | -p | pin 2 or 4 points | 0(2), 1(4) |
 
 In the window, to change the view or interact with the cloth
+
 | Key | Meaning  |
 | ------ | ------ |
 | W/A/S/D  | Move the view |
